@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Business Days — Quick Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222;
+    --border: #2a2a2a;
+    --accent: #60a5fa;
+    --green: #34d399;
+    --green-dim: rgba(52, 211, 153, 0.12);
+    --text: #f0f0f0;
+    --text-muted: #555;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app-page { min-height: 100vh; display: flex; flex-direction: column; }
+
+  .app-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .app-topbar-icon {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .app-topbar-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .app-content {
+    flex: 1;
+    padding: 24px 20px 48px;
+    max-width: 680px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .btn {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+
+  .btn-primary-green { background: var(--green); color: #0a0a0a; }
+  .btn-primary-green:hover { background: #6ee7b7; }
+
+  .btn-clear { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
+  .btn-clear:hover { border-color: #f87171; color: #f87171; }
+
+  .bdc-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 14px;
+  }
+
+  .bdc-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .bdc-field { display: flex; flex-direction: column; gap: 6px; }
+
+  .bdc-field label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .bdc-field input[type="date"] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 500;
+    padding: 10px 12px;
+    outline: none;
+    width: 100%;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    color-scheme: dark;
+  }
+
+  .bdc-field input[type="date"]:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 2px var(--green-dim);
+  }
+
+  .bdc-actions { display: flex; gap: 10px; }
+
+  .bdc-result {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 3px solid var(--green);
+    margin-bottom: 14px;
+  }
+
+  .bdc-result-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .bdc-result-values {
+    display: flex;
+    gap: 28px;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+
+  .bdc-result-item { display: flex; flex-direction: column; gap: 3px; }
+
+  .bdc-result-val {
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--green);
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+
+  .bdc-result-sub { font-size: 11px; font-weight: 400; color: var(--text); }
+  .bdc-divider { color: var(--border); font-size: 26px; align-self: center; }
+
+  .bdc-holidays {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+
+  .bdc-holidays-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .bdc-holiday-list { display: flex; flex-direction: column; gap: 4px; }
+
+  .bdc-holiday-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .bdc-holiday-item:last-child { border-bottom: none; }
+
+  .bdc-holiday-name { color: var(--text); font-weight: 500; }
+  .bdc-holiday-date { color: var(--text-muted); font-size: 12px; }
+  .bdc-holiday-skipped { color: var(--green); font-size: 11px; font-weight: 600; }
+
+  @media (max-width: 420px) {
+    .bdc-row { grid-template-columns: 1fr; }
+    .bdc-result-values { gap: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="app-page">
+  <div class="app-topbar">
+    <a class="back-btn" href="../">← Quick Tools</a>
+    <div class="app-topbar-icon" style="background:#064e3b">📅</div>
+    <span class="app-topbar-title">Business Day Counter</span>
+  </div>
+  <div class="app-content">
+
+    <div class="bdc-card">
+      <div class="bdc-row">
+        <div class="bdc-field">
+          <label>Start Date</label>
+          <input type="date" id="bdc-start" onchange="bdcCalc()">
+        </div>
+        <div class="bdc-field">
+          <label>End Date</label>
+          <input type="date" id="bdc-end" onchange="bdcCalc()">
+        </div>
+      </div>
+      <div class="bdc-actions">
+        <button class="btn btn-primary-green" style="flex:1" onclick="bdcSetToday()">Set Start to Today</button>
+        <button class="btn btn-clear" onclick="bdcClear()">Clear</button>
+      </div>
+    </div>
+
+    <div class="bdc-result" id="bdc-result" style="display:none">
+      <div class="bdc-result-label">Result</div>
+      <div class="bdc-result-values">
+        <div class="bdc-result-item">
+          <span class="bdc-result-val" id="bdc-bdays">—</span>
+          <span class="bdc-result-sub">shop business days</span>
+        </div>
+        <div class="bdc-divider">/</div>
+        <div class="bdc-result-item">
+          <span class="bdc-result-val" id="bdc-caldays">—</span>
+          <span class="bdc-result-sub">calendar days</span>
+        </div>
+        <div class="bdc-divider">/</div>
+        <div class="bdc-result-item">
+          <span class="bdc-result-val" id="bdc-weeks">—</span>
+          <span class="bdc-result-sub">weeks</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bdc-holidays" id="bdc-holiday-box" style="display:none">
+      <div class="bdc-holidays-label">Holidays in Range</div>
+      <div class="bdc-holiday-list" id="bdc-holiday-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function getHolidays(year) {
+    const holidays = [];
+    holidays.push({ name: "New Year's Day",   date: `${year}-01-01` });
+    holidays.push({ name: "Memorial Day",      date: nthWeekday(year, 5, 1, -1) });
+    holidays.push({ name: "Independence Day",  date: `${year}-07-04` });
+    holidays.push({ name: "Labor Day",         date: nthWeekday(year, 9, 1, 1) });
+    holidays.push({ name: "Thanksgiving",      date: nthWeekday(year, 11, 4, 4) });
+    holidays.push({ name: "Christmas Eve",     date: `${year}-12-24` });
+    holidays.push({ name: "Christmas Day",     date: `${year}-12-25` });
+    holidays.push({ name: "New Year's Eve",    date: `${year}-12-31` });
+    return holidays;
+  }
+
+  function nthWeekday(year, month, weekday, n) {
+    if (n > 0) {
+      const d = new Date(year, month - 1, 1);
+      let count = 0;
+      while (true) {
+        if (d.getDay() === weekday) { count++; if (count === n) break; }
+        d.setDate(d.getDate() + 1);
+      }
+      return toYMD(d);
+    } else {
+      const d = new Date(year, month, 0);
+      while (d.getDay() !== weekday) d.setDate(d.getDate() - 1);
+      return toYMD(d);
+    }
+  }
+
+  function toYMD(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function parseDate(str) {
+    const [y, m, d] = str.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  function formatDateDisplay(str) {
+    const d = parseDate(str);
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
+  function bdcCalc() {
+    const startVal = document.getElementById('bdc-start').value;
+    const endVal   = document.getElementById('bdc-end').value;
+    if (!startVal || !endVal) return;
+
+    const start = parseDate(startVal);
+    const end   = parseDate(endVal);
+    if (end < start) {
+      document.getElementById('bdc-result').style.display = 'none';
+      document.getElementById('bdc-holiday-box').style.display = 'none';
+      return;
+    }
+
+    let allHolidays = [];
+    for (let y = start.getFullYear(); y <= end.getFullYear(); y++) {
+      allHolidays = allHolidays.concat(getHolidays(y));
+    }
+
+    const holidaysInRange = [];
+    const holidaySet = new Set();
+    allHolidays.forEach(h => {
+      const hd = parseDate(h.date);
+      const dow = hd.getDay();
+      if (hd >= start && hd <= end && dow >= 1 && dow <= 4) {
+        holidaySet.add(h.date);
+        holidaysInRange.push(h);
+      }
+    });
+
+    let businessDays = 0;
+    const cursor = new Date(start);
+    while (cursor <= end) {
+      const dow = cursor.getDay();
+      const ymd = toYMD(cursor);
+      if (dow >= 1 && dow <= 4 && !holidaySet.has(ymd)) businessDays++;
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    const calendarDays = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    const weeks = (businessDays / 4).toFixed(1);
+
+    document.getElementById('bdc-bdays').textContent   = businessDays;
+    document.getElementById('bdc-caldays').textContent = calendarDays;
+    document.getElementById('bdc-weeks').textContent   = weeks;
+    document.getElementById('bdc-result').style.display = 'block';
+
+    const box  = document.getElementById('bdc-holiday-box');
+    const list = document.getElementById('bdc-holiday-list');
+    if (holidaysInRange.length === 0) {
+      box.style.display = 'none';
+    } else {
+      list.innerHTML = holidaysInRange.map(h => `
+        <div class="bdc-holiday-item">
+          <span class="bdc-holiday-name">${h.name}</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="bdc-holiday-date">${formatDateDisplay(h.date)}</span>
+            <span class="bdc-holiday-skipped">skipped</span>
+          </div>
+        </div>
+      `).join('');
+      box.style.display = 'block';
+    }
+  }
+
+  function bdcSetToday() {
+    document.getElementById('bdc-start').value = toYMD(new Date());
+    bdcCalc();
+  }
+
+  function bdcClear() {
+    document.getElementById('bdc-start').value = '';
+    document.getElementById('bdc-end').value   = '';
+    document.getElementById('bdc-result').style.display     = 'none';
+    document.getElementById('bdc-holiday-box').style.display = 'none';
+  }
+</script>
+</body>
+</html>
