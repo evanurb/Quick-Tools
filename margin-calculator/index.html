@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Margin Calculator — Quick Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222;
+    --border: #2a2a2a;
+    --accent: #60a5fa;
+    --orange: #fb923c;
+    --orange-dim: rgba(251,146,60,0.12);
+    --orange-border: rgba(251,146,60,0.35);
+    --green: #34d399;
+    --green-dim: rgba(52,211,153,0.1);
+    --red: #f87171;
+    --text: #f0f0f0;
+    --text-muted: #555;
+    --text-dim: #888;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  html, body {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app-page { min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ── Topbar ── */
+  .app-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .app-topbar-icon {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+
+  .app-topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
+
+  /* ── Content ── */
+  .app-content {
+    flex: 1;
+    padding: 24px 20px 48px;
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* ── Section Labels ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* ── Project Margin Override ── */
+  .project-override {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+
+  .project-override.active {
+    border-color: var(--orange-border);
+    background: rgba(251,146,60,0.04);
+  }
+
+  .override-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .override-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .override-badge {
+    background: var(--orange);
+    color: #0a0a0a;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .project-override.active .override-badge { opacity: 1; }
+
+  .override-clear {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .project-override.active .override-clear {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .override-clear:hover { border-color: var(--red); color: var(--red); }
+
+  .override-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  .override-val {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-muted);
+    line-height: 1;
+    letter-spacing: -1px;
+    min-width: 52px;
+    transition: color 0.2s;
+  }
+
+  .project-override.active .override-val { color: var(--orange); }
+
+  .override-pct { font-size: 15px; font-weight: 600; color: var(--text-muted); }
+
+  .slider-wrap { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--orange);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(251,146,60,0.4);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 2px 14px rgba(251,146,60,0.6);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--orange);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(251,146,60,0.4);
+  }
+
+  input[type="range"].locked {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  .slider-ticks {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 2px;
+  }
+
+  .slider-tick {
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.15s;
+    font-weight: 500;
+    user-select: none;
+  }
+
+  .slider-tick:hover { color: var(--orange); }
+  .slider-tick.active { color: var(--orange); font-weight: 700; }
+  .slider-tick.locked { pointer-events: none; opacity: 0.35; }
+
+  /* ── Line Items ── */
+  .line-items { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+
+  .line-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    animation: fadeIn 0.15s ease;
+    transition: border-color 0.2s;
+  }
+
+  .line-item:hover { border-color: #333; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .line-top {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .line-desc {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 0;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .line-desc::placeholder { color: var(--text-muted); }
+  .line-desc:focus { border-color: var(--orange); color: var(--text); }
+
+  .line-sell {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  .line-sell.has-value { color: var(--orange); }
+
+  .delete-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 15px;
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .delete-btn:hover { border-color: var(--red); color: var(--red); background: rgba(248,113,113,0.08); }
+
+  .line-middle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .line-field { display: flex; flex-direction: column; gap: 5px; }
+
+  .line-field label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+  }
+
+  .input-wrap { position: relative; display: flex; align-items: center; }
+
+  .input-prefix {
+    position: absolute;
+    left: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: color 0.15s;
+  }
+
+  .line-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 600;
+    padding: 9px 10px 9px 24px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    -moz-appearance: textfield;
+  }
+
+  .line-input::-webkit-outer-spin-button,
+  .line-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .line-input:focus { border-color: var(--orange); box-shadow: 0 0 0 2px var(--orange-dim); }
+  .line-input:focus ~ .input-prefix,
+  .input-wrap:focus-within .input-prefix { color: var(--orange); }
+
+  /* line margin slider mini */
+  .line-margin-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .line-margin-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .line-margin-val {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--orange);
+    min-width: 36px;
+    text-align: right;
+    transition: color 0.2s;
+  }
+
+  .line-margin-val.locked { color: var(--text-muted); }
+
+  input[type="range"].mini {
+    height: 4px;
+    flex: 1;
+  }
+
+  input[type="range"].mini::-webkit-slider-thumb {
+    width: 16px; height: 16px;
+  }
+
+  input[type="range"].mini::-moz-range-thumb {
+    width: 16px; height: 16px;
+  }
+
+  /* ── Add Item Button ── */
+  .btn {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+
+  .btn-add-line {
+    width: 100%;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    padding: 12px;
+  }
+
+  .btn-add-line:hover { border-color: var(--orange); color: var(--orange); background: var(--orange-dim); }
+
+  /* ── Project Totals ── */
+  .project-totals {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 3px solid var(--orange);
+    margin-bottom: 14px;
+  }
+
+  .totals-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .totals-title {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text);
+  }
+
+  .totals-actions { display: flex; gap: 8px; }
+
+  .action-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-muted);
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .action-btn:hover { border-color: var(--orange); color: var(--orange); }
+  .action-btn.copied { border-color: var(--green); color: var(--green); }
+
+  .totals-main {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .totals-prefix { font-size: 20px; font-weight: 600; color: var(--text-muted); }
+
+  .totals-price {
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--orange);
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+
+  .totals-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .totals-stat {
+    background: var(--bg);
+    padding: 11px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .totals-stat-val {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .totals-stat-val.green { color: var(--green); }
+  .totals-stat-val.orange { color: var(--orange); }
+
+  .totals-stat-label { font-size: 10px; color: var(--text-muted); font-weight: 500; }
+
+  @media (max-width: 480px) {
+    .totals-stats { grid-template-columns: 1fr 1fr; }
+    .line-middle { grid-template-columns: 1fr; }
+    .totals-price { font-size: 36px; }
+  }
+
+  /* print */
+  @media print {
+    .app-topbar, .btn-add-line, .delete-btn, .totals-actions, .override-clear { display: none !important; }
+    .line-item { break-inside: avoid; }
+    body { background: white; color: black; }
+  }
+</style>
+</head>
+<body>
+<div class="app-page">
+  <div class="app-topbar">
+    <a class="back-btn" href="../">← Quick Tools</a>
+    <div class="app-topbar-icon" style="background:#431407">💰</div>
+    <span class="app-topbar-title">Margin Calculator</span>
+  </div>
+
+  <div class="app-content">
+
+    <!-- Project Override Slider -->
+    <div class="project-override" id="project-override">
+      <div class="override-top">
+        <span class="override-label">
+          Project Margin Override
+          <span class="override-badge">ACTIVE — ALL LINES LOCKED</span>
+        </span>
+        <button class="override-clear" onclick="clearProjectMargin()">Clear</button>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:4px;">Drag to lock all lines to a single margin. Clear to restore individual settings.</p>
+      <div class="override-slider-row">
+        <div>
+          <span class="override-val" id="project-margin-display">—</span>
+          <span class="override-pct">%</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="project-margin-slider" min="1" max="90" value="33"
+            oninput="onProjectSliderInput()">
+          <div class="slider-ticks" id="project-ticks">
+            <span class="slider-tick" onclick="setProjectMargin(20)">20%</span>
+            <span class="slider-tick" onclick="setProjectMargin(30)">30%</span>
+            <span class="slider-tick" onclick="setProjectMargin(40)">40%</span>
+            <span class="slider-tick active" onclick="setProjectMargin(50)">50%</span>
+            <span class="slider-tick" onclick="setProjectMargin(60)">60%</span>
+            <span class="slider-tick" onclick="setProjectMargin(70)">70%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Line Items -->
+    <div class="section-header">
+      <span class="section-title">Line Items</span>
+    </div>
+
+    <div class="line-items" id="line-items"></div>
+
+    <button class="btn btn-add-line" onclick="addLine()">+ Add Line Item</button>
+
+    <!-- Project Totals -->
+    <div class="project-totals" id="project-totals">
+      <div class="totals-header">
+        <span class="totals-title">Project Total</span>
+        <div class="totals-actions">
+          <button class="action-btn" id="copy-btn" onclick="copyToClipboard()">📋 Copy</button>
+          <button class="action-btn" onclick="window.print()">🖨️ Print</button>
+        </div>
+      </div>
+      <div class="totals-main">
+        <span class="totals-prefix">$</span>
+        <span class="totals-price" id="total-sell">0.00</span>
+      </div>
+      <div class="totals-stats">
+        <div class="totals-stat">
+          <span class="totals-stat-val" id="total-cost">$0.00</span>
+          <span class="totals-stat-label">Total Cost</span>
+        </div>
+        <div class="totals-stat">
+          <span class="totals-stat-val green" id="total-profit">$0.00</span>
+          <span class="totals-stat-label">Gross Profit</span>
+        </div>
+        <div class="totals-stat">
+          <span class="totals-stat-val orange" id="total-margin">0.0%</span>
+          <span class="totals-stat-label">Overall Margin</span>
+        </div>
+        <div class="totals-stat">
+          <span class="totals-stat-val" id="total-markup">0.0%</span>
+          <span class="totals-stat-label">Overall Markup</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let lineCount = 0;
+  let projectMarginActive = false;
+  let projectMarginVal = 33; // default 33.3% margin = 50% markup
+
+  // ── Slider fill utility ──
+  function setSliderFill(el, val, min, max) {
+    const pct = (val - min) / (max - min) * 100;
+    el.style.background = `linear-gradient(to right, var(--orange) ${pct}%, var(--border) ${pct}%)`;
+  }
+
+  // ── Project Override ──
+  function onProjectSliderInput() {
+    const slider = document.getElementById('project-margin-slider');
+    projectMarginVal = parseInt(slider.value);
+    projectMarginActive = true;
+    document.getElementById('project-margin-display').textContent = projectMarginVal;
+    document.getElementById('project-override').classList.add('active');
+    setSliderFill(slider, projectMarginVal, 1, 90);
+    updateProjectTicks(projectMarginVal);
+    lockAllLines();
+    recalcAll();
+  }
+
+  function setProjectMargin(val) {
+    document.getElementById('project-margin-slider').value = val;
+    projectMarginVal = val;
+    projectMarginActive = true;
+    document.getElementById('project-margin-display').textContent = val;
+    document.getElementById('project-override').classList.add('active');
+    setSliderFill(document.getElementById('project-margin-slider'), val, 1, 90);
+    updateProjectTicks(val);
+    lockAllLines();
+    recalcAll();
+  }
+
+  function clearProjectMargin() {
+    projectMarginActive = false;
+    document.getElementById('project-margin-display').textContent = '—';
+    document.getElementById('project-override').classList.remove('active');
+    document.getElementById('project-margin-slider').style.background = 'var(--border)';
+    updateProjectTicks(null);
+    unlockAllLines();
+    recalcAll();
+  }
+
+  function updateProjectTicks(val) {
+    document.querySelectorAll('#project-ticks .slider-tick').forEach(t => {
+      const tv = parseInt(t.textContent);
+      t.classList.toggle('active', tv === val);
+      t.classList.toggle('locked', false);
+    });
+  }
+
+  function lockAllLines() {
+    document.querySelectorAll('.line-margin-slider').forEach(s => {
+      s.classList.add('locked');
+      s.value = projectMarginVal;
+      setSliderFill(s, projectMarginVal, 1, 90);
+    });
+    document.querySelectorAll('.line-margin-val').forEach(v => {
+      v.classList.add('locked');
+      v.textContent = projectMarginVal + '%';
+    });
+  }
+
+  function unlockAllLines() {
+    document.querySelectorAll('.line-margin-slider').forEach(s => {
+      s.classList.remove('locked');
+      setSliderFill(s, parseInt(s.value), 1, 90);
+    });
+    document.querySelectorAll('.line-margin-val').forEach((v, i) => {
+      v.classList.remove('locked');
+    });
+    recalcAll();
+  }
+
+  // ── Add Line ──
+  function addLine() {
+    lineCount++;
+    const id = lineCount;
+    const defaultMargin = projectMarginActive ? projectMarginVal : 33;
+
+    const div = document.createElement('div');
+    div.className = 'line-item';
+    div.id = `line-${id}`;
+    div.innerHTML = `
+      <div class="line-top">
+        <input class="line-desc" type="text" placeholder="Description (optional)" id="line-desc-${id}">
+        <span class="line-sell" id="line-sell-${id}">—</span>
+        <button class="delete-btn" onclick="removeLine(${id})">×</button>
+      </div>
+      <div class="line-middle">
+        <div class="line-field">
+          <label>Cost</label>
+          <div class="input-wrap">
+            <span class="input-prefix">$</span>
+            <input class="line-input" type="number" id="line-cost-${id}" placeholder="0.00"
+              min="0" step="0.01" oninput="recalcLine(${id}); recalcAll()">
+          </div>
+        </div>
+        <div class="line-field">
+          <label>Sell Price</label>
+          <div class="input-wrap">
+            <span class="input-prefix">$</span>
+            <input class="line-input" type="number" id="line-sellfield-${id}" placeholder="0.00"
+              min="0" step="0.01" oninput="recalcLineFromSell(${id}); recalcAll()">
+          </div>
+        </div>
+      </div>
+      <div class="line-margin-row">
+        <span class="line-margin-label">Margin</span>
+        <input type="range" class="mini line-margin-slider ${projectMarginActive ? 'locked' : ''}"
+          id="line-margin-${id}" min="1" max="90" value="${defaultMargin}"
+          oninput="onLineSliderInput(${id})">
+        <span class="line-margin-val ${projectMarginActive ? 'locked' : ''}" id="line-margin-val-${id}">${defaultMargin}%</span>
+      </div>
+    `;
+
+    document.getElementById('line-items').appendChild(div);
+    setSliderFill(document.getElementById(`line-margin-${id}`), defaultMargin, 1, 90);
+    recalcLine(id);
+    recalcAll();
+  }
+
+  function removeLine(id) {
+    const el = document.getElementById(`line-${id}`);
+    if (el) el.remove();
+    recalcAll();
+  }
+
+  // ── Line Calc ──
+  function onLineSliderInput(id) {
+    if (projectMarginActive) return;
+    const slider = document.getElementById(`line-margin-${id}`);
+    const val = parseInt(slider.value);
+    document.getElementById(`line-margin-val-${id}`).textContent = val + '%';
+    setSliderFill(slider, val, 1, 90);
+    recalcLine(id);
+    recalcAll();
+  }
+
+  function recalcLine(id) {
+    const costEl = document.getElementById(`line-cost-${id}`);
+    const sellFieldEl = document.getElementById(`line-sellfield-${id}`);
+    const sellLabelEl = document.getElementById(`line-sell-${id}`);
+    if (!costEl) return;
+
+    const cost = parseFloat(costEl.value);
+    const margin = parseInt(document.getElementById(`line-margin-${id}`).value) / 100;
+
+    if (!cost || cost <= 0) {
+      sellFieldEl.value = '';
+      sellLabelEl.textContent = '—';
+      sellLabelEl.className = 'line-sell';
+      return;
+    }
+
+    const sell = cost / (1 - margin);
+    sellFieldEl.value = sell.toFixed(2);
+    sellLabelEl.textContent = '$' + sell.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    sellLabelEl.className = 'line-sell has-value';
+  }
+
+  function recalcLineFromSell(id) {
+    const costEl = document.getElementById(`line-cost-${id}`);
+    const sellFieldEl = document.getElementById(`line-sellfield-${id}`);
+    const sellLabelEl = document.getElementById(`line-sell-${id}`);
+    const slider = document.getElementById(`line-margin-${id}`);
+    const marginValEl = document.getElementById(`line-margin-val-${id}`);
+    if (!costEl || !sellFieldEl) return;
+
+    const cost = parseFloat(costEl.value);
+    const sell = parseFloat(sellFieldEl.value);
+
+    if (!cost || cost <= 0 || !sell || sell <= cost) {
+      sellLabelEl.textContent = '—';
+      sellLabelEl.className = 'line-sell';
+      return;
+    }
+
+    const margin = ((sell - cost) / sell) * 100;
+    const clampedMargin = Math.min(90, Math.max(1, Math.round(margin)));
+
+    if (!projectMarginActive) {
+      slider.value = clampedMargin;
+      marginValEl.textContent = clampedMargin + '%';
+      setSliderFill(slider, clampedMargin, 1, 90);
+    }
+
+    sellLabelEl.textContent = '$' + sell.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    sellLabelEl.className = 'line-sell has-value';
+  }
+
+  // ── Project Totals ──
+  function recalcAll() {
+    let totalCost = 0, totalSell = 0;
+
+    document.querySelectorAll('.line-item').forEach(item => {
+      const id = item.id.replace('line-', '');
+      const costEl = document.getElementById(`line-cost-${id}`);
+      const sellFieldEl = document.getElementById(`line-sellfield-${id}`);
+      if (!costEl) return;
+
+      const cost = parseFloat(costEl.value) || 0;
+      const margin = parseInt(document.getElementById(`line-margin-${id}`).value) / 100;
+      const sell = cost > 0 ? cost / (1 - margin) : 0;
+
+      totalCost += cost;
+      totalSell += sell;
+    });
+
+    const totalProfit = totalSell - totalCost;
+    const overallMargin = totalSell > 0 ? (totalProfit / totalSell) * 100 : 0;
+    const overallMarkup = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
+
+    const fmt = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    document.getElementById('total-sell').textContent   = totalSell.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('total-cost').textContent   = fmt(totalCost);
+    document.getElementById('total-profit').textContent = fmt(totalProfit);
+    document.getElementById('total-margin').textContent = overallMargin.toFixed(1) + '%';
+    document.getElementById('total-markup').textContent = overallMarkup.toFixed(1) + '%';
+  }
+
+  // ── Copy to Clipboard ──
+  function copyToClipboard() {
+    const lines = [];
+    const projectName = 'Quick Tools — Margin Calculator';
+    const now = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    lines.push(`${projectName}`);
+    lines.push(`${now}`);
+    lines.push('');
+    lines.push('LINE ITEMS');
+    lines.push('─────────────────────────────');
+
+    document.querySelectorAll('.line-item').forEach(item => {
+      const id = item.id.replace('line-', '');
+      const desc = document.getElementById(`line-desc-${id}`).value || `Item ${id}`;
+      const cost = parseFloat(document.getElementById(`line-cost-${id}`).value) || 0;
+      const margin = parseInt(document.getElementById(`line-margin-${id}`).value) / 100;
+      const sell = cost > 0 ? cost / (1 - margin) : 0;
+      if (cost > 0) {
+        lines.push(`${desc}`);
+        lines.push(`  Cost:       $${cost.toFixed(2)}`);
+        lines.push(`  Sell Price: $${sell.toFixed(2)}  (${(margin * 100).toFixed(1)}% margin)`);
+      }
+    });
+
+    lines.push('─────────────────────────────');
+
+    const totalSellEl = document.getElementById('total-sell').textContent;
+    const totalCostEl = document.getElementById('total-cost').textContent;
+    const totalProfitEl = document.getElementById('total-profit').textContent;
+    const marginEl = document.getElementById('total-margin').textContent;
+    const markupEl = document.getElementById('total-markup').textContent;
+
+    lines.push('PROJECT TOTAL');
+    lines.push(`  Total Cost:    ${totalCostEl}`);
+    lines.push(`  Total Sell:    $${totalSellEl}`);
+    lines.push(`  Gross Profit:  ${totalProfitEl}`);
+    lines.push(`  Gross Margin:  ${marginEl}`);
+    lines.push(`  Markup:        ${markupEl}`);
+
+    const text = lines.join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = '✓ Copied';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '📋 Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  // ── Init ──
+  document.addEventListener('DOMContentLoaded', () => {
+    // Project slider starts inactive — just style it
+    document.getElementById('project-margin-slider').style.background = 'var(--border)';
+    addLine();
+  });
+</script>
+</body>
+</html>
